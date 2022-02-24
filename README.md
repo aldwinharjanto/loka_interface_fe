@@ -1,6 +1,6 @@
 # LoKa project
 
-This repository based on Risedle Protocol.
+This repository is the prototype for Low Karbon blockchain mining project
 
 ## Get started
 
