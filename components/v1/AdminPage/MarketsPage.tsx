@@ -59,23 +59,24 @@ const MarketsPage: FunctionComponent<MarketsPageProps> = ({}) => {
     const contract = new ethers.Contract(contractAddres, contractAbi, signer);
     const connection = contract.connect(contract.signer);
     const [allToken, setAllToken] = useState(0);
-    const [ownedToken, setOwnedToken] = useState(0);
-    const getOwnedToken = async () => {
-        var supply = await contract.tokenQuantity(account);
-        var allSupply = await contract.totalSupply();
-        var maxSupply = await contract.showTotalSupply();
-        setOwnedToken(supply);
-        setAllToken(allSupply);
-        console.log("Owned Token " + ownedToken);
-        var num = parseInt(allToken.toString()) + 1;
-        var uri_ = '{"name": "LoKa #' + num + '","image": "https://voyager.co.id/img/LOKA_NFT.jpg","attributes": [{"trait_type": "Rig Tier", "value": "Dragon"},{"trait_type": "Multiplier", "value": "1.7"}]}';
-        setURI(uri_);
-        //setIsMinted(result);
-    };
+    const [totalSupply, setTotalSupply] = useState(0);
+    const [currentYield, setcurrentYield] = useState(0);
+    const [trfAddress, setTrfAddress] = useState(0);
+    const getCurrentYield = async () => {
+        var yields = await contract.getCurrentYield();
+        setcurrentYield(yields);
+        console.log("CURRENT YIELD " + currentYield);
+    }
 
     const getTotalSupply = async () => {
+        var supply = await contract.tokenQuantity(account);
         var allSupply = await contract.totalSupply();
+        setTotalSupply(supply);
         setAllToken(allSupply);
+        console.log("TOTAL SUPPLY " + totalSupply);
+        var num = parseInt(totalSupply.toString()) + 1;
+        var uri_ = '{"name": "LoKa #' + num + '","image": "https://voyager.co.id/img/LOKA_NFT.jpg","attributes": [{"trait_type": "Rig Tier", "value": "Dragon"},{"trait_type": "Multiplier", "value": "1.7"}]}';
+        setURI(uri_);
         //setIsMinted(result);
     };
 
@@ -93,7 +94,7 @@ const MarketsPage: FunctionComponent<MarketsPageProps> = ({}) => {
         });
 
         await result.wait();
-        getOwnedToken();
+        getTotalSupply();
     };
     const [ethYield, setEthYield] = useState(0);
     const getYield = async () => {
@@ -102,8 +103,9 @@ const MarketsPage: FunctionComponent<MarketsPageProps> = ({}) => {
         setEthYield(theYield / 1000000000);
     };
     if (first || uri == "") {
-        getOwnedToken();
+        getTotalSupply();
         getYield();
+        getCurrentYield();
         first = false;
     }
     const claim = async () => {
@@ -129,7 +131,7 @@ const MarketsPage: FunctionComponent<MarketsPageProps> = ({}) => {
 
         const hashrate = result.data["hashrate"] / 1000000000;
         const workersOnline = result.data["workersOnline"];
-        setOwnerProfit(daily * (ownedToken / allToken));
+        setOwnerProfit(daily * (totalSupply / allToken));
         const monthly = 30 * ownerProfit;
         setMiningBalance(daily);
         setMonthlyMiningBalance(monthly);
@@ -179,31 +181,57 @@ const MarketsPage: FunctionComponent<MarketsPageProps> = ({}) => {
                     <div className="container mx-auto mt-8 max-w-[540px] px-4 sm:mt-16">
                         <div className="flex flex-col space-y-6 border-b border-dashed border-gray-light-9 pb-6 dark:border-gray-dark-9">
                             <div className="text-center">
-                                <h1 className="text-2xl font-bold leading-8 tracking-[-0.02em] text-gray-light-12 dark:text-gray-dark-12 sm:text-[32px]">Your LoKa NFTs </h1>
+                                <h1 className="text-2xl font-bold leading-8 tracking-[-0.02em] text-gray-light-12 dark:text-gray-dark-12 sm:text-[32px]">Howdy Baws! </h1>
+                                <h3 className="text-2xl font-bold leading-8 tracking-[-0.02em] text-gray-light-12 dark:text-gray-dark-12 sm:text-[20px]">Currently you are yielding {currentYield.toString} from  </h3>
 
                                 <div className="overflow-hidden rounded-2xl border border-gray-light-3 bg-gray-light-2 dark:border-gray-dark-3 dark:bg-gray-dark-2 sm:h-64 sm:flex-row sm:items-center">
                                     <div className="sm:basis-8/8 px-4 py-6 text-center sm:pl-8">
-                                        <h1 className="m-0 mb-8 text-base font-bold text-gray-light-12 dark:text-gray-dark-12 sm:text-lg">You have {ownedToken.toString()} LoKas </h1>
-                                        <h3 className="m-0 mb-8 text-base font-bold text-gray-light-12 dark:text-gray-dark-12 sm:text-lg">There are {allToken.toString()} / {maxSupply.toString()} LoKas available </h3>
+                                        <h1 className="m-0 mb-8 text-base font-bold text-gray-light-12 dark:text-gray-dark-12 sm:text-lg"> </h1>
                                         <p className="mb-6 text-sm leading-6 text-gray-light-10 dark:text-gray-dark-10">
                                             {" "}
+                                            <a className="text-gray-900 dark:text-gray-dark-12">Yield Amount </a><input type="Text" id="yieldInput" onChange={(e) => setEthYield(e.target.value)} ></input>
+                                            <br />{""}
                                             <a
                                                 onClick={() => {
-                                                    mintToken();
+                                                    // setCurrentYield(ethYield)
+                                                    console.log(`Currently you're setting for yielding amount ${+ethYield} eth`)
                                                 }}
                                                 className="button gradient inline-block rounded-full bg-[length:300%_300%] bg-center py-3 px-8 font-inter text-sm font-bold leading-none tracking-tight text-gray-50 hover:bg-left  hover:shadow-xl hover:shadow-blue-400/20 active:scale-95 dark:text-gray-900 sm:text-base md:text-base"
                                             >
-                                                Mint +1 LoKa
+                                                SET YIELD
+                                            </a>
+                                            <a
+                                                onClick={() => {
+                                                    // const newyield = await contract.getCurrentYield();
+                                                    // disburseYield(newyield);
+                                                    console.log(`Yielding has been updated to ${+ethYield} eth`)
+                                                }}
+                                                className="button gradient inline-block rounded-full bg-[length:300%_300%] bg-center py-3 px-8 font-inter text-sm font-bold leading-none tracking-tight text-gray-50 hover:bg-left  hover:shadow-xl hover:shadow-blue-400/20 active:scale-95 dark:text-gray-900 sm:text-base md:text-base"
+                                            >
+                                                DISBURSE YIELD
                                             </a>{" "}
                                             <br />
+                                        </p>
+                                        <p className="text-sm font-bold leading-6 text-gray-light-12 dark:text-gray-dark-12"></p>
+                                    </div>
+                                </div>
+
+                                <div className="overflow-hidden rounded-2xl border border-gray-light-3 bg-gray-light-2 dark:border-gray-dark-3 dark:bg-gray-dark-2 sm:h-64 sm:flex-row sm:items-center">
+                                    <div className="sm:basis-8/8 px-4 py-6 text-center sm:pl-8">
+                                        <h1 className="m-0 mb-8 text-base font-bold text-gray-light-12 dark:text-gray-dark-12 sm:text-lg"> </h1>
+                                        <p className="mb-6 text-sm leading-6 text-gray-light-10 dark:text-gray-dark-10">
+                                            {" "}
                                             <br />
+                                            <a className="text-gray-900 dark:text-gray-dark-12">Target Account </a><input type="Text" id="owner_address" onChange={(e) => setTrfAddress(e.target.value)} ></input>
+                                            
                                             <a
                                                 onClick={() => {
-                                                    claimYield();
+                                                    // getCurrentYield();
+                                                    console.log(`This button suppose to transfer the ownership of the whole blockchain to ${trfAddress}`)
                                                 }}
                                                 className="button gradient inline-block rounded-full bg-[length:300%_300%] bg-center py-3 px-8 font-inter text-sm font-bold leading-none tracking-tight text-gray-50 hover:bg-left  hover:shadow-xl hover:shadow-blue-400/20 active:scale-95 dark:text-gray-900 sm:text-base md:text-base"
                                             >
-                                                Claim {ethYield} ETH
+                                                Transfer Ownership
                                             </a>
                                         </p>
                                         <p className="text-sm font-bold leading-6 text-gray-light-12 dark:text-gray-dark-12"></p>
@@ -213,94 +241,6 @@ const MarketsPage: FunctionComponent<MarketsPageProps> = ({}) => {
                         </div>
                     </div>
                     {/* Cards */}
-
-                    <div className="container mx-auto mt-6 max-w-[800px] px-4 sm:mt-8">
-                        <div className="text-center">
-                            <h1 className="text-2xl font-bold leading-8 tracking-[-0.02em] text-gray-light-12 dark:text-gray-dark-12 sm:text-[32px]">Dashboard</h1>
-                        </div>
-
-                        <div className="m-auto max-w-4xl px-4">
-                            <div className="flex flex-col overflow-hidden rounded-2xl border border-gray-light-3 bg-gray-light-2 dark:border-gray-dark-3 dark:bg-gray-dark-2 sm:h-64 sm:basis-1/4 sm:flex-row sm:items-center">
-                                <div className="sm:basis-4/4 px-4 py-6 sm:pl-8">
-                                    <h1 className="m-0 mb-4 text-base font-bold text-gray-light-12 dark:text-gray-dark-12 sm:text-lg">{ownerProfit.toString()} ETH</h1>
-                                    <p className="mb-6 text-sm leading-6 text-gray-light-10 dark:text-gray-dark-10">
-                                        This is your estimated daily profit from LoKa mining rigs based on your NFTs<br></br>Our total mining yield is {miningBalance.toString()}
-                                    </p>
-                                    <p className="text-sm font-bold leading-6 text-gray-light-12 dark:text-gray-dark-12"></p>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col overflow-hidden rounded-2xl border border-gray-light-3 bg-gray-light-2 dark:border-gray-dark-3 dark:bg-gray-dark-2 sm:h-64 sm:flex-row sm:items-center">
-                                <div className="sm:basis-4/4 px-4 py-6 sm:pl-8">
-                                    <h1 className="m-0 mb-4 text-base font-bold text-gray-light-12 dark:text-gray-dark-12 sm:text-lg">{monthlyMiningBalance.toString()} ETH</h1>
-                                    <p className="mb-6 text-sm leading-6 text-gray-light-10 dark:text-gray-dark-10">This is your estimated monthly profit from LoKa mining rigs based on your NFTs</p>
-                                    <p className="text-sm font-bold leading-6 text-gray-light-12 dark:text-gray-dark-12"></p>
-                                </div>
-                            </div>
-                            <div className="flex flex-col overflow-hidden rounded-2xl border border-gray-light-3 bg-gray-light-2 dark:border-gray-dark-3 dark:bg-gray-dark-2 sm:h-64 sm:flex-row sm:items-center">
-                                <div className="sm:basis-4/4 px-4 py-6 sm:pl-8">
-                                    <h1 className="m-0 mb-4 text-base font-bold text-gray-light-12 dark:text-gray-dark-12 sm:text-lg">{averageHashrate.toString()} GH/s</h1>
-                                    <p className="mb-6 text-sm leading-6 text-gray-light-10 dark:text-gray-dark-10">Average hashrate within the last 24 hours</p>
-                                    <p className="text-sm font-bold leading-6 text-gray-light-12 dark:text-gray-dark-12"></p>
-                                </div>
-                            </div>
-                            <div className="flex flex-col overflow-hidden rounded-2xl border border-gray-light-3 bg-gray-light-2 dark:border-gray-dark-3 dark:bg-gray-dark-2 sm:h-64 sm:flex-row sm:items-center">
-                                <div className="sm:basis-4/4 px-4 py-6 sm:pl-8">
-                                    <h1 className="m-0 mb-4 text-base font-bold text-gray-light-12 dark:text-gray-dark-12 sm:text-lg">{workers.toString()} </h1>
-                                    <p className="mb-6 text-sm leading-6 text-gray-light-10 dark:text-gray-dark-10">Workers Online</p>
-                                    <p className="text-sm font-bold leading-6 text-gray-light-12 dark:text-gray-dark-12"></p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Cards loading state */}
-                        {showLoading && (
-                            <div className="grid grid-cols-1 gap-4">
-                                <div className="flex flex-col rounded-[24px] border border-gray-light-3 bg-gray-light-1 p-4 dark:border-gray-dark-3 dark:bg-gray-dark-1">
-                                    <div className="flex flex-row items-center space-x-4 pb-4">
-                                        <div className="h-12 w-12 flex-none animate-pulse rounded-full bg-gray-light-3 dark:bg-gray-dark-3"></div>
-                                        <div className="h-7 grow animate-pulse rounded-lg bg-gray-light-3 dark:bg-gray-dark-3"></div>
-                                    </div>
-                                    <div className="hidden h-[192px] animate-pulse bg-gray-light-3 dark:bg-gray-dark-3 sm:block"></div>
-                                    <div className="flex flex-row border-b border-dashed border-gray-light-3 py-4 dark:border-gray-dark-3">
-                                        <div className="h-7 grow animate-pulse rounded-lg bg-gray-light-3 dark:bg-gray-dark-3 "></div>
-                                    </div>
-                                    <div className="flex flex-row space-x-6 pt-4">
-                                        <div className="h-[40px] basis-1/3 animate-pulse rounded-lg bg-gray-light-3 dark:bg-gray-dark-3"></div>
-                                        <div className="h-[40px] basis-1/3 animate-pulse rounded-lg bg-gray-light-3 dark:bg-gray-dark-3"></div>
-                                        <div className="h-[40px] basis-1/3 animate-pulse rounded-lg bg-gray-light-3 dark:bg-gray-dark-3"></div>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col rounded-[24px] border border-gray-light-3 bg-gray-light-1 p-4 dark:border-gray-dark-3 dark:bg-gray-dark-1">
-                                    <div className="flex flex-row items-center space-x-4 pb-4">
-                                        <div className="h-12 w-12 flex-none animate-pulse rounded-full bg-gray-light-3 dark:bg-gray-dark-3"></div>
-                                        <div className="h-7 grow animate-pulse rounded-lg bg-gray-light-3 dark:bg-gray-dark-3"></div>
-                                    </div>
-                                    <div className="hidden h-[192px] animate-pulse bg-gray-light-3 dark:bg-gray-dark-3 sm:block"></div>
-                                    <div className="flex flex-row border-b border-dashed border-gray-light-3 py-4 dark:border-gray-dark-3">
-                                        <div className="h-7 grow animate-pulse rounded-lg bg-gray-light-3 dark:bg-gray-dark-3 "></div>
-                                    </div>
-                                    <div className="flex flex-row space-x-6 pt-4">
-                                        <div className="h-[40px] basis-1/3 animate-pulse rounded-lg bg-gray-light-3 dark:bg-gray-dark-3"></div>
-                                        <div className="h-[40px] basis-1/3 animate-pulse rounded-lg bg-gray-light-3 dark:bg-gray-dark-3"></div>
-                                        <div className="h-[40px] basis-1/3 animate-pulse rounded-lg bg-gray-light-3 dark:bg-gray-dark-3"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        {/* Cards display state */}
-                        {showData && (
-                            <div className="grid grid-cols-1 gap-4">
-                                {marketsResponse.data?.markets.map((market) => {
-                                    return (
-                                        <div key={market.leveraged_token_address}>
-                                            <MarketCard address={market.leveraged_token_address} initialNAV={market.nav_last} initialNAVChange={market.leveraged_token_price_change_percent} totalSupply={market.leveraged_token_total_supply} />{" "}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
                 </div>
                 <div className="hidden sm:inline-block">
                     <Footer />
